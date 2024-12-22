@@ -1,6 +1,6 @@
 {
-  "name": "Minha Calculadora",
-  "short_name": "Calculadora",
+  "name": "Minha Cal",
+  "short_name": "Cal",
   "start_url": "/calculadora/",
   "display": "standalone",
   "background_color": "#ffffff",
