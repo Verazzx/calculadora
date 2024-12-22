@@ -1,0 +1,20 @@
+{
+  "nome":"Minha Calculadora"
+  "nome_curto":"Calculadora"
+  "url_inicial":"/calculadora/"
+  "mostrar":"autônomo"
+  "cor_de_fundo":"#ffffff"
+  "cor_do_tema":"#000000"
+  "ícones": [
+    {
+      "fonte":"ícone-192x192.png"
+      "tamanhos":"192x192"
+      "tipo":"imagem/png"
+    },
+    {
+      "fonte":"ícone-512x512.png",
+      "tamanhos":"512x512"
+      "tipo":"imagem/png"
+    }
+  ]
+}
