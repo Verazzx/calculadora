@@ -3,162 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Pontuação LBFF</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>X-Treino - Tabela de Pontuação</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f3e5f5; /* Cor lilás de fundo */
-            background-size: cover;
-            background-position: center;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            text-align: center;
-            padding: 8px;
-        }
-        th {
-            background-color: #8e24aa; /* Cor lilás da tabela */
-            color: white;
-        }
-        input[type="text"], input[type="number"] {
-            width: 100%;
-            text-align: center;
-            box-sizing: border-box;
-        }
-        #extra-info {
-            background-color: #f8f9fa;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            border: 1px solid #ddd;
-        }
-        #slots-input {
-            width: 100%;
-            height: 150px;
-            font-family: Arial, sans-serif;
-            margin-bottom: 20px;
-            padding: 10px;
-            box-sizing: border-box;
-            border: 1px solid #ddd;
-        }
-        /* Modo escuro */
-        body.dark-mode {
-            background-color: #121212;
-            color: white;
-        }
-        body.dark-mode .container {
-            background-color: #4a148c; /* Fundo lilás escuro */
-        }
-        body.dark-mode table, body.dark-mode th, body.dark-mode td {
-            background-color: #333;
-            color: white;
-            border: 1px solid #444;
-        }
-        body.dark-mode input[type="text"], body.dark-mode input[type="number"], body.dark-mode textarea {
-            background-color: #222;
-            color: white;
-            border: 1px solid #555;
-        }
-        body.dark-mode button {
-            background-color: #555;
-            color: white;
-            border: none;
-            padding: 10px;
-            cursor: pointer;
-        }
-        body.dark-mode button:hover {
-            background-color: #888;
-        }
-        /* Estilo para as imagens */
-        #image-gallery {
-            margin-top: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        #image-gallery img {
-            width: 100%;
-            max-width: 300px;
-            border-radius: 8px;
-        }
-        /* Estilo do input de imagem */
-        #image-upload {
-            margin-top: 20px;
-        }
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background-color: #f4f4f4; }
+        input { width: 50px; text-align: center; }
+        button { margin: 5px; padding: 5px 10px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Copie e cole os slots aqui:</h2>
-        <textarea id="slots-input" placeholder="Cole os slots de equipes aqui."></textarea>
-        <button onclick="populateTeamsFromSlots()">Preencher Equipes</button>
-        <button onclick="toggleDarkMode()">Modo Escuro</button>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Equipe</th>
-                    <th>QUEDA 1</th>
-                    <th>QUEDA 2</th>
-                    <th>QUEDA 3</th>
-                    <th>PONTOS</th>
-                    <th>Total de Kills</th>
-                    <th>Ação</th>
-                </tr>
-            </thead>
-            <tbody id="teams-table">
-                <!-- Linhas das equipes geradas dinamicamente -->
-            </tbody>
-        </table>
+    <h2>X-Treino - Tabela de Pontuação</h2>
 
-        <button onclick="generateResults()">Gerar Resultado</button>
-        <button onclick="sortTeams()">Ordenar por Pontos</button>
+    <textarea id="slots-input" rows="5" placeholder="Insira os slots (ex: 1 → Equipe X)"></textarea><br>
+    <button onclick="populateTeamsFromSlots()">Preencher Equipes</button>
+    <button onclick="clearTable()">Limpar Tudo</button>
 
-        <textarea id="results-text" rows="10" cols="50" readonly style="margin-top: 20px;"></textarea>
-
-        <!-- Seção de upload de imagens -->
-        <div id="image-upload">
-            <input type="file" id="image-input" accept="image/*" multiple onchange="handleImageUpload(event)">
-        </div>
-
-        <!-- Galeria de imagens -->
-        <div id="image-gallery"></div>
-    </div>
+    <table id="teams-table">
+        <thead>
+            <tr>
+                <th>Equipe</th>
+                <th>Queda 1</th>
+                <th>Queda 2</th>
+                <th>Queda 3</th>
+                <th>Pontos Totais</th>
+                <th>Kills Totais</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
 
     <script>
-        const pointsPerPosition = [12, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0];
+        let teams = [];
 
-        let teams = []; // Vai armazenar as equipes
-
-        // Função para popular as equipes a partir do texto dos slots
         function populateTeamsFromSlots() {
             const slotsText = document.getElementById('slots-input').value.trim();
-            const slotLines = slotsText.split('\n');
-            
-            teams = []; // Limpa a lista de equipes
+            if (!slotsText) {
+                alert("Insira os slots corretamente!");
+                return;
+            }
 
-            const table = document.getElementById('teams-table');
-            table.innerHTML = ''; // Limpa a tabela
+            const slotLines = slotsText.split('\n').map(line => line.trim()).filter(line => line);
+            const tableBody = document.querySelector('#teams-table tbody');
+
+            // Limpa tabela e array antes de adicionar novas equipes
+            tableBody.innerHTML = ''; 
+            teams = [];
 
             slotLines.forEach((line, index) => {
-                const teamName = line.split('→')[1]?.trim(); // Pega o nome da equipe após "→"
+                let teamName = line.includes('→') ? line.split('→')[1].trim() : line; // Extrai o nome corretamente
                 if (teamName) {
                     const teamId = index + 1;
+                    teams.push({ id: teamId, name: teamName, points: 0, totalKills: 0 });
+
                     const row = document.createElement('tr');
                     row.id = `team-${teamId}`;
-
                     row.innerHTML = `
                         <td><input type="text" value="${teamName}" onchange="updateName(${teamId}, this.value)"></td>
                         ${Array.from({ length: 3 }).map((_, i) => `
@@ -172,33 +75,9 @@
                         <td id="team-${teamId}-total-kills">0</td>
                         <td><button onclick="removeTeam(${teamId})">Remover</button></td>
                     `;
-
-                    table.appendChild(row);
-                    teams.push({ id: teamId, name: teamName, points: 0, totalKills: 0, positions: [{}, {}, {}] });
+                    tableBody.appendChild(row);
                 }
             });
-        }
-
-        // Função para lidar com o upload das imagens
-        function handleImageUpload(event) {
-            const files = event.target.files;
-            const imageGallery = document.getElementById('image-gallery');
-
-            // Limpar galeria antes de adicionar novas imagens
-            imageGallery.innerHTML = '';
-
-            // Limitar o número de imagens a 8
-            const numImages = Math.min(files.length, 8);
-
-            for (let i = 0; i < numImages; i++) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    imageGallery.appendChild(img);
-                };
-                reader.readAsDataURL(files[i]);
-            }
         }
 
         function updateName(teamId, newName) {
@@ -209,367 +88,39 @@
         }
 
         function updatePoints(teamId) {
-            const row = document.getElementById(`team-${teamId}`);
-            const positions = row.querySelectorAll('.position');
-            const kills = row.querySelectorAll('.kills');
+            const team = teams.find(t => t.id === teamId);
+            if (!team) return;
 
             let totalPoints = 0;
             let totalKills = 0;
-
-            positions.forEach((posInput, index) => {
-                const position = parseInt(posInput.value) || 0;
-                const killCount = parseInt(kills[index].value) || 0;
-
-                totalPoints += (pointsPerPosition[position - 1] || 0) + killCount;
-                totalKills += killCount;
-
-                // Armazenar as posições e kills da equipe
-                teams.find(t => t.id === teamId).positions[index] = { position, kills: killCount };
-            });
-
-            document.getElementById(`team-${teamId}-points`).textContent = totalPoints;
-            document.getElementById(`team-${teamId}-total-kills`).textContent = totalKills;
-
-            // Atualiza os pontos e kills da equipe no array
-            const team = teams.find(t => t.id === teamId);
-            if (team) {
-                team.points = totalPoints;
-                team.totalKills = totalKills;
-            }
-        }
-
-        function removeTeam(teamId) {
-            const row = document.getElementById(`team-${teamId}`);
-            row.remove();
-
-            const teamIndex = teams.findIndex(t => t.id === teamId);
-            if (teamIndex !== -1) {
-                teams.splice(teamIndex, 1);
-            }
-        }
-
-        function generateResults() {
-            let resultText = '';
-            teams.forEach(team => {
-                result<!DOCTYPE html>
-<html lang="pt">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Pontuação LBFF</title>
-    <link rel="stylesheet" href="styles.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f3e5f5; /* Cor lilás de fundo */
-            background-size: cover;
-            background-position: center;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            text-align: center;
-            padding: 8px;
-        }
-        th {
-            background-color: #8e24aa; /* Cor lilás da tabela */
-            color: white;
-        }
-        input[type="text"], input[type="number"] {
-            width: 100%;
-            text-align: center;
-            box-sizing: border-box;
-        }
-        #extra-info {
-            background-color: #f8f9fa;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            border: 1px solid #ddd;
-        }
-        #slots-input {
-            width: 100%;
-            height: 150px;
-            font-family: Arial, sans-serif;
-            margin-bottom: 20px;
-            padding: 10px;
-            box-sizing: border-box;
-            border: 1px solid #ddd;
-        }
-        /* Modo escuro */
-        body.dark-mode {
-            background-color: #121212;
-            color: white;
-        }
-        body.dark-mode .container {
-            background-color: #4a148c; /* Fundo lilás escuro */
-        }
-        body.dark-mode table, body.dark-mode th, body.dark-mode td {
-            background-color: #333;
-            color: white;
-            border: 1px solid #444;
-        }
-        body.dark-mode input[type="text"], body.dark-mode input[type="number"], body.dark-mode textarea {
-            background-color: #222;
-            color: white;
-            border: 1px solid #555;
-        }
-        body.dark-mode button {
-            background-color: #555;
-            color: white;
-            border: none;
-            padding: 10px;
-            cursor: pointer;
-        }
-        body.dark-mode button:hover {
-            background-color: #888;
-        }
-        /* Estilo para as imagens */
-        #image-gallery {
-            margin-top: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        #image-gallery img {
-            width: 100%;
-            max-width: 300px;
-            border-radius: 8px;
-        }
-        /* Estilo do input de imagem */
-        #image-upload {
-            margin-top: 20px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h2>Copie e cole os slots aqui:</h2>
-        <textarea id="slots-input" placeholder="Cole os slots de equipes aqui."></textarea>
-        <button onclick="populateTeamsFromSlots()">Preencher Equipes</button>
-        <button onclick="toggleDarkMode()">Modo Escuro</button>
-
-        <table>
-            <thead>
-                <tr>
-                    <th>Equipe</th>
-                    <th>QUEDA 1</th>
-                    <th>QUEDA 2</th>
-                    <th>QUEDA 3</th>
-                    <th>PONTOS</th>
-                    <th>Total de Kills</th>
-                    <th>Ação</th>
-                </tr>
-            </thead>
-            <tbody id="teams-table">
-                <!-- Linhas das equipes geradas dinamicamente -->
-            </tbody>
-        </table>
-
-        <button onclick="generateResults()">Gerar Resultado</button>
-        <button onclick="sortTeams()">Ordenar por Pontos</button>
-
-        <textarea id="results-text" rows="10" cols="50" readonly style="margin-top: 20px;"></textarea>
-
-        <!-- Seção de upload de imagens -->
-        <div id="image-upload">
-            <input type="file" id="image-input" accept="image/*" multiple onchange="handleImageUpload(event)">
-        </div>
-
-        <!-- Galeria de imagens -->
-        <div id="image-gallery"></div>
-    </div>
-
-    <script>
-        const pointsPerPosition = [12, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0];
-
-        let teams = []; // Vai armazenar as equipes
-
-        // Função para popular as equipes a partir do texto dos slots
-        function populateTeamsFromSlots() {
-            const slotsText = document.getElementById('slots-input').value.trim();
-            const slotLines = slotsText.split('\n');
             
-            teams = []; // Limpa a lista de equipes
+            document.querySelectorAll(`#team-${teamId} .position`).forEach((input, index) => {
+                const position = parseInt(input.value);
+                const kills = parseInt(document.querySelectorAll(`#team-${teamId} .kills`)[index].value) || 0;
+                totalKills += kills;
 
-            const table = document.getElementById('teams-table');
-            table.innerHTML = ''; // Limpa a tabela
-
-            slotLines.forEach((line, index) => {
-                const teamName = line.split('→')[1]?.trim(); // Pega o nome da equipe após "→"
-                if (teamName) {
-                    const teamId = index + 1;
-                    const row = document.createElement('tr');
-                    row.id = `team-${teamId}`;
-
-                    row.innerHTML = `
-                        <td><input type="text" value="${teamName}" onchange="updateName(${teamId}, this.value)"></td>
-                        ${Array.from({ length: 3 }).map((_, i) => `
-                            <td>
-                                <input type="number" class="position" placeholder="P" min="1" max="12" onchange="updatePoints(${teamId})">
-                                |
-                                <input type="number" class="kills" placeholder="K" min="0" onchange="updatePoints(${teamId})">
-                            </td>
-                        `).join('')}
-                        <td id="team-${teamId}-points">0</td>
-                        <td id="team-${teamId}-total-kills">0</td>
-                        <td><button onclick="removeTeam(${teamId})">Remover</button></td>
-                    `;
-
-                    table.appendChild(row);
-                    teams.push({ id: teamId, name: teamName, points: 0, totalKills: 0, positions: [{}, {}, {}] });
-                }
+                const pointsTable = [0, 12, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]; // Posição X Pontuação
+                totalPoints += pointsTable[position] || 0;
+                totalPoints += kills; // 1 ponto por kill
             });
-        }
 
-        // Função para lidar com o upload das imagens
-        function handleImageUpload(event) {
-            const files = event.target.files;
-            const imageGallery = document.getElementById('image-gallery');
-
-            // Limpar galeria antes de adicionar novas imagens
-            imageGallery.innerHTML = '';
-
-            // Limitar o número de imagens a 8
-            const numImages = Math.min(files.length, 8);
-
-            for (let i = 0; i < numImages; i++) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    imageGallery.appendChild(img);
-                };
-                reader.readAsDataURL(files[i]);
-            }
-        }
-
-        function updateName(teamId, newName) {
-            const team = teams.find(t => t.id === teamId);
-            if (team) {
-                team.name = newName;
-            }
-        }
-
-        function updatePoints(teamId) {
-            const row = document.getElementById(`team-${teamId}`);
-            const positions = row.querySelectorAll('.position');
-            const kills = row.querySelectorAll('.kills');
-
-            let totalPoints = 0;
-            let totalKills = 0;
-
-            positions.forEach((posInput, index) => {
-                const position = parseInt(posInput.value) || 0;
-                const killCount = parseInt(kills[index].value) || 0;
-
-                totalPoints += (pointsPerPosition[position - 1] || 0) + killCount;
-                totalKills += killCount;
-
-                // Armazenar as posições e kills da equipe
-                teams.find(t => t.id === teamId).positions[index] = { position, kills: killCount };
-            });
+            team.points = totalPoints;
+            team.totalKills = totalKills;
 
             document.getElementById(`team-${teamId}-points`).textContent = totalPoints;
             document.getElementById(`team-${teamId}-total-kills`).textContent = totalKills;
-
-            // Atualiza os pontos e kills da equipe no array
-            const team = teams.find(t => t.id === teamId);
-            if (team) {
-                team.points = totalPoints;
-                team.totalKills = totalKills;
-            }
         }
 
         function removeTeam(teamId) {
-            const row = document.getElementById(`team-${teamId}`);
-            row.remove();
-
-            const teamIndex = teams.findIndex(t => t.id === teamId);
-            if (teamIndex !== -1) {
-                teams.splice(teamIndex, 1);
-            }
+            teams = teams.filter(t => t.id !== teamId);
+            document.getElementById(`team-${teamId}`).remove();
         }
 
-        function generateResults() {
-            let resultText = '';
-            teams.forEach(team => {
-                result<!DOCTYPE html>
-<html lang="pt">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Pontuação LBFF</title>
-    <link rel="stylesheet" href="styles.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            transition: background-color 0.3s, color 0.3s;
+        function clearTable() {
+            document.querySelector('#teams-table tbody').innerHTML = '';
+            teams = [];
         }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f3e5f5; /* Cor lilás de fundo */
-            background-size: cover;
-            background-position: center;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            text-align: center;
-            padding: 8px;
-        }
-        th {
-            background-color: #8e24aa; /* Cor lilás da tabela */
-            color: white;
-        }
-        input[type="text"], input[type="number"] {
-            width: 100%;
-            text-align: center;
-            box-sizing: border-box;
-        }
-        #extra-info {
-            background-color: #f8f9fa;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            border: 1px solid #ddd;
-        }
-        #slots-input {
-            width: 100%;
-            height: 150px;
-            font-family: Arial, sans-serif;
-            margin-bottom: 20px;
-            padding: 10px;
-            box-sizing: border-box;
-            border: 1px solid #ddd;
-        }
-        /* Modo escuro */
-        body.dark-mode {
-            background-color: #121212;
-            color: white;
-        }
-        body.dark-mode .container {
-            background-color: #4a148c; /* Fundo lilás escuro */
-        }
-        body.dark-mode table, body.dark-mode th, body.dark-mode td {
-            background-color: #333;
-            color: white;
-            border: 1px solid #444;
-        }
-        body.dark-mode input[type="text"], body.dark-mode input[type="number"], body.dark-
+    </script>
+
+</body>
+</html>
